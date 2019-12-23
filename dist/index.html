@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><link rel=icon href=favicon.ico><title>video-muros</title><link rel=stylesheet href=css/bootstrap.min.css><link rel=stylesheet href=css/all.css><link href=css/font-awesome-4.7.0/css/font-awesome.min.css rel=stylesheet><link type=text/css href=css/styles.css rel=stylesheet><link href=/css/about.0d299ef6.css rel=prefetch><link href=/js/about.18cdef2e.js rel=prefetch><link href=/css/app.cbd0c9e4.css rel=preload as=style><link href=/js/app.71d8843c.js rel=preload as=script><link href=/js/chunk-vendors.a6f2c3b7.js rel=preload as=script><link href=/css/app.cbd0c9e4.css rel=stylesheet></head><body><div id=capa1><div id=capaYoutube1 class=sequence-panel style=visibility:hidden;><div id=videoYoutube1 class=sequence-panel></div></div><div id=capaYoutube2 class=sequence-panel style=visibility:hidden;><div id=videoYoutube2 class=sequence-panel></div></div><video id=videoSecuencia1 class=sequence-panel fuente="" controls muted style=visibility:hidden;><source id=sourceSecuencia1 src="" type=video/mp4></video><video id=videoSecuencia2 class=sequence-panel fuente="" controls muted style=visibility:hidden;><source id=sourceSecuencia2 src="" type=video/mp4></video></div><div id=capa2 style="z-index: 5; height:100%; height:100%; position:absolute"></div><div class=pautas-panel onclick=toggleApp()></div><div style="padding:0;border:0;margin:0;text-align:center; width:100%"><div id=app></div></div><script src=js/jquery-3.3.1.slim.min.js integrity=sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo crossorigin=anonymous></script><script src=js/popper.min.js crossorigin=anonymous></script><script src=js/bootstrap.min.js></script><script src=js/utils.js></script><script src=js/config.js></script><script src=js/programacion.js></script><script src=https://www.youtube.com/iframe_api></script><script language=javascript>var inicio = true;
+      var appActiva = false;
+      var datosdeOperacion = null;
+      var apideYoutubeCargada = false;
+      var p = null;
+
+      function toggleApp(){
+        if(appActiva){
+          appActiva = false;
+          var elApp = document.getElementById("app");
+          elApp.style.visibility = "hidden";
+        }else{
+          appActiva = true;
+          var elApp = document.getElementById("app");
+          elApp.style.visibility = "visible";
+        }
+      }
+      function esInicio(){
+        if(inicio){
+          inicio = false;
+          return true;
+        }
+        return false;
+      }</script><script src=/js/chunk-vendors.a6f2c3b7.js></script><script src=/js/app.71d8843c.js></script></body></html>

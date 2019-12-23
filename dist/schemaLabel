@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/product.schema.json",
+  "title": "Label",
+  "description": "Diseño de etiqueta",
+  "type": "object",
+  "properties": {
+    "labelId": {
+      "description": "Identificador unico de la etiqueta",
+      "title": "Id",
+      "type": "integer"
+    },
+    "name": {
+      "description": "Name descriptivo de la etiqueta",
+      "title": "Nombre",
+      "type": "string"
+    },
+    "width": {
+      "description": "Identificador unico de la etiqueta",
+      "title": "Ancho",
+      "type": "integer"
+    },
+    "height": {
+      "description": "Identificador unico de la etiqueta",
+      "title": "Alto",
+      "type": "integer"
+    },
+    "resolucion": {
+      "description": "Resolución de la impresora para la que se diseña la etiqueta(en puntos por pulgada)",
+      "title": "Resolución",
+      "type": "integer"
+    },
+    "icons":{
+      "type": "array",
+      "minItems":0,
+      "items":
+        { "title": "Icono",
+          "description": "Imagen a desplegar en la etiqueta",
+          "type": "object",
+          "properties":{
+            "idIcon": {
+              "description": "Identificador unico del icono dentro de la etiqueta",
+              "title": "Id",
+              "type": "integer"
+    		},
+            "url": {
+              "description": "URL del icono",
+              "title": "URL",
+              "type": "string"
+    		},
+            "width": {
+              "description": "Ancho de la etiqueta",
+              "title": "Ancho",
+              "type": "integer"
+            },
+            "height": {
+              "description": "Alto de la etiqueta",
+              "title": "Alto",
+              "type": "integer"
+            },
+            "x": {
+              "description": "Posición izquierda de la imagen",
+              "title": "X",
+              "type": "integer"
+            },
+            "y": {
+              "description": "Posición superior de la etiqueta",
+              "title": "Y",
+              "type": "integer"
+            }
+            
+          },
+          required:["idIcon", "url", "x", "y", "width", "height"]
+        }
+     },
+     "texts":{
+        "type": "array",
+        "minItems":0,
+        "items":
+          { "title": "Text",
+            "description": "Texto a presentar en la etiqueta",
+            "type": "object",
+            "properties":{
+              "idText": {
+                "description": "Identificador del Texto a   desplegar dentro de la etiqueta",
+                "title": "Id",
+                "type": "integer"
+              },
+              "text": {
+                "description": "Texto a desplegar",
+                "title": "Texto",
+                "type": "string"
+              },
+              "x": {
+                "description": "Posición izquierda del texto",
+                "title": "X",
+                "type": "integer"
+              },
+              "y": {
+                "description": "Posición superior del texto",
+                "title": "Y",
+                "type": "integer"
+              }
+
+            }
+          }
+     }
+  },
+  "required": [ "labelId", "name", "width", "height", "resolucion" ]
+}

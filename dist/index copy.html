@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="favicon.ico">
+    <title>video-muros</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/all.css">
+    <link href="css/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link type="text/css" href="css/styles.css" rel="stylesheet">
+    <style>
+      body {
+        font-size: 14px;
+        font-weight: bolder;
+      }
+      #app{
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        position:relative;
+        z-index:8;
+        background-color: transparent;
+        visibility:hidden;
+      }
+      #videoPautas{
+        z-index:6;
+        visibility: hidden;
+      }
+      h1, p, a, video, h2{
+          z-index: 2;
+          position: relative;
+      }
+      .pautas-panel{
+          min-width: 100%;
+          min-height: 100%;
+          z-index: 8;
+          position: absolute;
+      }
+      .sequence-panel {
+        position: fixed;
+        top: 50%; left: 50%;
+        z-index: 1;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        transform: translate(-50%, -50%);
+        visibility:hidden;
+      }
+      
+  </style>
+  </head>
+  <body>
+    <div id = "videoSecuencia">
+      <video id="videoSecuencia1" class="sequence-panel" controls muted  >
+        <source id = "sourceSecuencia1" src="" type="video/mp4">
+      </video>
+      <video id="videoSecuencia2" class="sequence-panel" controls muted  >
+        <source id = "sourceSecuencia2" src="" type="video/mp4">
+      </video>
+    </div>
+    <div id = "videoPautas">
+      <video id="videoPautas1" class="sequence-panel" controls muted  >
+        <source id = "sourcePauta1" src="" type="video/mp4">
+      </video>
+      <video id="videoPautas2" class="sequence-panel" controls muted  >
+        <source id = "sourcePauta2" src="" type="video/mp4">
+      </video>
+    </div>  
+    <div class = "pautas-panel" onclick = "toggleApp()"></div>
+    <div style = "padding:0;border:0;margin:0;text-align:center; width:100%">
+      <div id="app"></div>
+    </div>
+    <!-- built files will be auto injected -->
+
+
+    <script src="js/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="js/popper.min.js" crossorigin="anonymous"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script language = "javascript">
+      var inicio = true;
+      var appActiva = false;
+      var sources = null;
+      var secuencia = null;
+      var pautas = null;
+      var pautasdeCanal = null;
+      var indicedeSecuenciaEjecutandose = 0;
+      var pautaTransmitiendose = null;
+      var datosdeOperacion = null;
+      var idCanal = config.idCanal;
+      var coladePautas = [];
+      var presentandoPauta = false;
+      var paneles = [];
+      function toggleApp(){
+        if(appActiva){
+          appActiva = false;
+          ocultarApp();
+        }else{
+          appActiva = true;
+          presentarApp();
+        }
+
+      }
+      function esInicio(){
+        if(inicio){
+          inicio = false;
+          return true;
+        }
+        return false;
+      }
+      function presentarApp(){
+        var elApp = document.getElementById("app");
+        elApp.style.visibility = "visible";
+      }
+      function ocultarApp(){
+        var elApp = document.getElementById("app");
+        elApp.style.visibility = "hidden";
+      }
+      function registrarFuentes(_fuentes){
+        fuentes = _fuentes
+      }
+      function decodeTime(fecha, hora){
+        //alert("en decode fecha de " + fecha + " " + hora);
+        var dateRegexp = /^(\d{4})\-(\d\d)\-(\d\d)$/gi;
+        var date = new Date();
+        
+        if(fecha.match(dateRegexp))
+        { 
+          date.setFullYear(parseInt(RegExp.$1));
+          date.setMonth(parseInt(RegExp.$2) - 1);
+          date.setDate(parseInt(RegExp.$3));
+        }
+        var timeRegexp = /(\d\d)\:(\d\d)\:(\d\d)/gi;
+        if(hora.match(timeRegexp))
+        { date.setHours(parseInt(RegExp.$1));
+          date.setMinutes(parseInt(RegExp.$2));
+          date.setSeconds(parseInt(RegExp.$3));
+        }
+        //alert("fecha resultante: " + date);
+        return date;
+
+      }
+      function now(){
+        var fecha = new Date((new Date()).getTime() + (config.desfaceHora * 3600000));
+        return fecha;
+      }
+      function EventodePanel(panel, fecha, hora, tipo, datos){
+        //alert("creando evento de panel: " + fecha + " " + hora)
+        this.panel = panel;
+        this.fecha = fecha;
+        this.hora = hora;
+        this.tipo = tipo;
+        this.datos = datos;
+        this.time = decodeTime(fecha,hora);
+      }
+      let programacion = {
+        programaPresentandose:"inicio",
+        videoSecuenciaSeleccionada:1,
+        videoPautasSeleccionada:1,
+        indicedeSecuenciaEjecutandose:-1,
+        queuePautas: [],
+        timeOuts: [],
+        paneles: [],
+        inicio: null,
+        eventosdePanel: [],
+        datosdeOperacion: null,
+        target: null,
+        channel: null,
+        sequence: null,
+        events: null,
+        pautas: null,
+        messages: null,
+        sourcesOfSequence: null
+         
+      }
+      function agregarTrigger(trigger){
+
+
+      } 
+      function manejarEventodePanel(eventodePanel){
+        console.log("manejando evento de panel: " + JSON.stringify(eventodePanel));
+      }
+      function generarProgramaciondeEventos(eventos){
+        //alert("generando programación de eventos");
+        for(var evento of eventos){
+          var fechadeEvento = decodeTime(evento.fechaInicio, evento.horaInicio);
+          //alert("fechadeEvento: " + fechadeEvento);
+          var fechaActual = now();
+          //alert("fechaActual: " + fechaActual);
+          var tiempoFaltante = fechadeEvento.getTime() - fechaActual.getTime();
+          //alert("tiempoFaltante: " + tiempoFaltante);
+          if(tiempoFaltante > 0){
+            var eventodePanel = new EventodePanel("Principal", evento.fechaInicio, evento.horaInicio, "evento", evento);
+            let shot = setTimeout(()=>{manejarEventodePanel(eventodePanel)}, tiempoFaltante);
+            programacion.eventosdePanel.push(eventodePanel);
+            programacion.timeOuts.push(shot);
+          }
+          //setTimeout(tiempoFaltante )
+          //var eventodePanel = new EventodePanel("Principal", evento, ); 
+
+        }
+        
+      }
+      function generarProgramacióndeSecuencia(){
+        
+
+      }
+      function programarPauta(pauta){
+        console.log("programando pauta: " + JSON.stringify(pauta))
+        console.log("antes de push" + JSON.stringify(programacion.queuePautas))
+        programacion.queuePautas.push(pauta);
+        console.log("despues de push" + JSON.stringify(programacion.queuePautas))
+        
+      }
+      function generarProgramaciondePautas(){
+        //alert("en programacion de pautas");
+        var ahora = now();
+        var pauta
+        for(var i = 0; i < programacion.pautas.length; i++){
+          pauta = programacion.pautas[i];
+          //alert("pauta: " + JSON.stringify(pauta));
+          //alert("pauta.fechaFin: " + pauta.fechaFin)
+          var fechaInicioPauta = decodeTime(pauta.fechaInicio, pauta.horaInicio)
+          var fechaFinPauta = decodeTime(pauta.fechaFin, pauta.horaFin)
+          //alert("fechaInicioPauta: " + fechaInicioPauta)
+          //alert("fechaFinPauta: " + fechaFinPauta)
+          programacion.intervalos = [];
+          if(fechaInicioPauta.getTime() <= ahora.getTime()){
+            if(ahora.getTime() < fechaFinPauta.getTime()){
+              console.log("creando intervalo de programación de pautas " + JSON.stringify(pauta));
+              programacion.intervalos.push( 
+                window.setInterval(
+                  () => {
+                    programarPauta(pauta);
+                  }, 
+                  pauta.intervalodeRepeticion * 1000
+                )
+              );
+            }
+          }
+        }
+      }
+      function generarProgramaciondeMensajes(messages){
+        var ahora = now();
+        for(var i = 0; i < programacion.messages.length; i++ ){
+          var message = programacion.messages[i];
+          //alert("message: " + JSON.stringify(message));
+          var fechaInicioMensaje = decodeTime(message.fechaInicio, message.horaInicio)
+          var fechaFinMensaje = decodeTime(message.fechaFin, message.horaFin)
+          if(fechaInicioMensaje.getTime() >= ahora.getTime()){
+            if(ahora.getTime() < fechaFinMensaje.getTime()){
+              var eventodePanel = new EventodePanel(message.idPanel, message.fechaInicio, message.horaInicio, "iniciodeMensaje", message);
+              var tiempoFaltante = fechaInicioMensaje.getTime() - ahora.getTime()
+              let shot = setTimeout(()=>{manejarEventodePanel(eventodePanel)}, tiempoFaltante);
+              programacion.eventosdePanel.push(eventodePanel);
+              programacion.timeOuts.push(shot);
+
+              eventodePanel = new EventodePanel(message.idPanel, message.fechaFin, message.horaFin, "findeMensaje", message);
+              tiempoFaltante = fechaFinMensaje.getTime() - ahora.getTime()
+              shot = setTimeout(()=>{manejarEventodePanel(eventodePanel)}, tiempoFaltante);
+              programacion.eventosdePanel.push(eventodePanel);
+              programacion.timeOuts.push(shot);
+            }
+          }
+        }
+      }
+      function manejarEvento(){
+
+      }
+      function visordeEventos(){
+
+      }
+      function findById(coleccion, identificador, id){
+
+        for(var i = 0; i < coleccion.length; i++){
+          if(coleccion[i][identificador] == id){
+            return coleccion[i];
+          }
+        }
+        return null;
+
+      }
+      function referenciarArreglo(arregloOrigen, arregloaReferenciar, identificador){
+        var arreglo = [];
+        for(var i = 0; i < arregloaReferenciar.length; i++){
+          for(var j = 0; j < arregloOrigen.length; j++){
+            if(arregloaReferenciar[i][identificador] == arregloOrigen[j][identificador]){
+              arreglo.push(arregloOrigen[j]);
+            }
+          }
+        }
+        return arreglo;
+      }
+      function seleccionarCapa(capa){
+        //alert("seleccionando capa " + capa);
+        var elVideoSecuencia1 = document.getElementById("videoSecuencia1");
+        var elVideoSecuencia2 = document.getElementById("videoSecuencia2");
+        var elVideoPautas1 = document.getElementById("videoSecuencia1");
+        var elVideoPautas2 = document.getElementById("videoSecuencia2");
+        elVideoSecuencia1.style.visibility = "hidden";
+        elVideoSecuencia2.style.visibility = "hidden";
+        elVideoPautas1.style.visibility = "hidden";
+        elVideoPautas2.style.visibility = "hidden";
+        if(capa == "pauta"){
+          if(programacion.videoPautasSeleccionada == 1){
+            elVideoPautas1.style.visibility = "visible";
+            programacion.videoPautasSeleccionada = 2
+          }else{
+            elVideoPautas2.style.visibility = "visible";
+            programacion.videoPautasSeleccionada = 1
+          }
+        }else{
+          if(programacion.videoSecuenciaSeleccionada == 1){
+            elVideoSecuencia1.style.visibility = "visible";
+            programacion.videoSecuenciaSeleccionada = 2
+          }else{
+            elVideoSecuencia2.style.visibility = "visible";
+            programacion.videoSecuenciaSeleccionada = 1
+          }
+        }
+      }
+      function ejecutarSourceOfSequence(){
+        var elVideoPautas1 = document.getElementById("videoPautas1");
+        var elVideoPautas2 = document.getElementById("videoPautas2");
+        var elSourcePauta1 = document.getElementById("sourcePauta1");;
+        var elSourcePauta2 = document.getElementById("sourcePauta2");;
+        var elVideoSecuencia1 = document.getElementById("videoSecuencia1");
+        var elVideoSecuencia2 = document.getElementById("videoSecuencia2");
+        var elSourceSecuencia1 = document.getElementById("sourceSecuencia1");
+        var elSourceSecuencia2 = document.getElementById("sourceSecuencia2");
+          
+        console.log("en ejecutarSourceOfSequence");
+        //alert("sources of Sequence"+ JSON.stringify(programacion.sourcesOfSequence));
+        console.log("queuePautas: " + JSON.stringify(programacion.queuePautas))
+        if(programacion.queuePautas.length > 0){
+          var pauta = programacion.queuePautas.splice(0, 1)
+          var fuente = "videos/" + pauta.source.uri
+          
+          console.log("presentando pauta: " + JSON.stringify(pauta));
+          if(programacion.videoPautasSeleccionada == 1){
+            elVideoPautas1.pause();
+            elSourcePauta1.setAttribute("src", fuente);
+            elVideoPautas1.load();
+            elVideoPautas1.play();
+            elVideoPautas1.addEventListener('playing', (event) => {
+              seleccionarCapa("pauta");
+            });
+            elVideoPautas1.addEventListener('ended', (event) => {
+              ejecutarSourceOfSequence();
+            });
+          }else{
+            elVideoPautas2.pause();
+            elSourcePauta2.setAttribute("src", fuente);
+            elVideoPautas2.load();
+            elVideoPautas2.play();
+            elVideoPautas2.addEventListener('playing', (event) => {
+              seleccionarCapa("pauta");
+            });
+            elVideoPautas2.addEventListener('ended', (event) => {
+              ejecutarSourceOfSequence();
+            });
+          }
+        }else{
+          if(programacion.indicedeSecuenciaEjecutandose == (programacion.sourcesOfSequence.length - 1)){
+            programacion.indicedeSecuenciaEjecutandose = 0;
+          }else{
+            programacion.indicedeSecuenciaEjecutandose++;
+          }
+          var source = programacion.sourcesOfSequence[programacion.indicedeSecuenciaEjecutandose];
+          console.log("presentando source of sequence: " + JSON.stringify(source));
+          var fuente = "videos/" + source.uri
+          if(programacion.videoSecuenciaSeleccionada == 1){
+            elVideoSecuencia1.pause();
+            elSourceSecuencia1.setAttribute("src", fuente);
+            elVideoSecuencia1.load();
+            elVideoSecuencia1.play();
+            elVideoSecuencia1.addEventListener('playing', (event) => {
+              seleccionarCapa("secuencia");
+            });
+            elVideoSecuencia1.addEventListener('ended', (event) => {
+              ejecutarSourceOfSequence();
+            });
+          }else{
+            elVideoSecuencia2.pause();
+            elSourceSecuencia2.setAttribute("src", fuente);
+            elVideoSecuencia2.load();
+            elVideoSecuencia2.play();
+            elVideoSecuencia2.addEventListener('playing', (event) => {
+              seleccionarCapa("secuencia");
+            });
+            elVideoSecuencia2.addEventListener('ended', (event) => {
+              ejecutarSourceOfSequence();
+            });
+          }
+        }
+      }
+      function generarProgramacion(_datos){
+        //alert("en generarProgramacion");
+        //alert("fecha:" + decodeTime("2019-12-01", "10:10:10"));
+        var fechaActual = now();
+        //alert("fechaActual: " + fechaActual);
+        //alert("datos: " + JSON.stringify(_datos));
+        programacion.inicio = (new Date()).getTime();
+        programacion.datosdeOperacion = _datos;
+        //alert("config.idTarget: " + config.idTarget);
+        programacion.target = findById(programacion.datosdeOperacion.targets, "idTarget", config.idTarget);
+        //alert("target: " + JSON.stringify(programacion.target));
+        programacion.channel = findById(programacion.datosdeOperacion.channels, "idChannel", programacion.target.idChannel);
+        //alert("channel: " + JSON.stringify(programacion.channel));
+        programacion.sequence = findById(programacion.datosdeOperacion.sequences, "idSequence", programacion.channel.idSequence);
+        //alert("sequence: " + JSON.stringify(programacion.sequence));
+        programacion.sourcesOfSequence = referenciarArreglo( programacion.datosdeOperacion.sources, programacion.sequence.sources, "idSource");;
+        for(var i = programacion.sourcesOfSequence.length - 1; i >= 0; i--){
+          var source = programacion.sourcesOfSequence[i];
+          if(source.estado != "VIGENTE"){
+            programacion.sourcesOfSequence.splice(i, 1);
+          }
+        }
+        //alert("sourcesOfSequence: " + JSON.stringify(programacion.sourcesOfSequence));
+        programacion.events =  referenciarArreglo( programacion.datosdeOperacion.events, programacion.channel.events, "idEvent");
+        //alert("events: " + JSON.stringify(programacion.events));
+        programacion.pautas =  referenciarArreglo( programacion.datosdeOperacion.pautas, programacion.channel.pautas, "idPauta");
+        for(var i = 0; i < programacion.pautas.length; i++){
+          for(var j = 0; j < programacion.datosdeOperacion.sources.length; j++){
+            if(programacion.pautas[i].idSource == programacion.datosdeOperacion.sources[j].idSource){
+              programacion.pautas[i].source = programacion.datosdeOperacion.sources[j];
+            }
+          }  
+        }
+        //alert("pautas: " + JSON.stringify(programacion.pautas));
+        programacion.messages =  referenciarArreglo( programacion.datosdeOperacion.messages, programacion.channel.messages, "idMessage");
+        //alert("messages: " + JSON.stringify(programacion.messages));
+        ejecutarSourceOfSequence();
+        generarProgramaciondeEventos(programacion.events);
+        generarProgramaciondePautas(programacion.pautas);
+        generarProgramaciondeMensajes(programacion.messages);
+
+      }
+      
+      
+      function terminarPresentaciondePauta(){
+        //alert("terminando presentacion de pauta");
+        presentandoPauta = false;
+        if(!(coladePautas.length > 0)){
+          var elSecuencia = document.getElementById("sourceSecuencia");
+          var elVideoSecuencia = document.getElementById("videoSecuencia");
+          var elPautaSource = document.getElementById("sourcePauta");
+          var elVideoPauta = document.getElementById("videoPautas");
+          elVideoPauta.pause()
+          elVideoPauta.style.visibility = "hidden";
+          elVideoSecuencia.style.visibility = "visible";
+          elVideoSecuencia.play();
+        }
+        ejecutordePautas();
+      }
+     
+
+    </script>
+  </body>
+</html>
