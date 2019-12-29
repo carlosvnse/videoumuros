@@ -210,10 +210,31 @@ function presentarVideodeYoutube(source) {
 }
 function onCanPlayVideo(event) {
   console.log("onCanPlayVideo on target " + event.target.outerHTML);
+  let ahorita = now().valueOf() * 1.0;
+  console.log("ahorita: " + ahorita);
+  let inicio =  parseFloat(event.target.getAttribute("inicio"));
+  if(inicio == 0){
+    inicio = (ahorita - inicio) / 1000.0;
+  }else{
+    inicio = 0;
+  }
+  console.log("id element: " + event.target.id);
+  if(event.target.id == "videoSecuencia1"){
+    //player1.seekTo(inicio);
+    //console.log("player1: " + JSON.stringify(player1));
+  }
+  if(event.target.id == "videoSecuencia2"){
+    //player2.seekTo(inicio);
+    //console.log("player2: " + JSON.stringify(player2));
+  }
+  
+  //event.target.seekTo(inicio);
+  console.log("inicio: " + inicio);
+
   event.target.play();
   mostrarElemento(event.target.id);
 }
-function presentarVideo(source) {
+function presentarVideo(source, inicio) {
   var elemento = null;
   var elementoSource = null;
   try {
@@ -228,6 +249,19 @@ function presentarVideo(source) {
     elementoSource = document.getElementById("sourceSecuencia2");
   }
   elementoSource.src = fuente;
+  try{
+    if(inicio){
+      let ahorita = now().valueOf();
+      inicio = (ahorita - inicio) / 1000.0;
+      console.log(">>>>>inicio: " + inicio);
+      elemento.setAttribute("inicio", "" + inicio);
+      elemento.currentTime = inicio;
+    }else{
+      elemento.setAttribute("inicio", "0");
+    }
+  }catch(error){
+
+  }
   elemento.addEventListener("canplay", onCanPlayVideo);
   //elemento.addEventListener("ended", ejecutarSourceOfSequence);
   elemento.load();
@@ -238,6 +272,18 @@ function presentarSource(source) {
   switch (source.tipo) {
     case "VIDEO":
       presentarVideo(source);
+      break;
+    case "YOUTUBE":
+      presentarVideodeYoutube(source);
+      break;
+  }
+}
+function presentarSourceActual(source, inicio) {
+  console.log("en presentarSourceActual: " + JSON.stringify(source));
+  console.log("en presentarSourceActual, inicio: " + inicio);
+  switch (source.tipo) {
+    case "VIDEO":
+      presentarVideo(source, inicio);
       break;
     case "YOUTUBE":
       presentarVideodeYoutube(source);
@@ -290,6 +336,7 @@ function ejecutarSourceOfSequence() {
   }
 }
 function presentarEvento(evento) {
+  console.log("en presentar evento: " + JSON.stringify(evento));
   presentarSource(evento.source);
 }
 function EventoProgramado(evento, tiempoFaltante) {
@@ -498,11 +545,15 @@ function procesarMensaje(socket, mensaje){
           console.log("por presentar video");
           presentarSource(mensaje.source);
         break;
+      case "presentarSourceActual":
+          console.log("por presentar video actual");
+          presentarSourceActual(mensaje.source, mensaje.inicio);
+        break;
   }
 }
 function iniciarTarget(){
   console.log("iniciando");
-  socket = new WebSocket("ws://localhost:8080");
+  socket = new WebSocket("ws://192.168.1.65:8080");
   socket.onopen = function(e) {
       console.log("[open] Connection established");
       console.log("Sending to server");
